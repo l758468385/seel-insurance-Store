@@ -98,11 +98,11 @@ export function subscribeCartChange(): void {
     const removeEvents = ['product_removed_from_cart', 'product_batch_removed_from_cart']
 
     quoteEvents.forEach((event) => {
-      analytics.event.subscribe(event, updateQuote)
+      analytics.event.subscribe(event as any, updateQuote)
     })
 
     removeEvents.forEach((event) => {
-      analytics.event.subscribe(event, hideWidget)
+      analytics.event.subscribe(event as any, hideWidget)
     })
   })
 }
