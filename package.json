@@ -14,11 +14,12 @@
 	},
 	"devDependencies": {
 		"@preact/preset-vite": "^2.9.3",
+		"@shop/analytics-types": "1.11.1",
+		"@shop/api-types": "2.14.1",
+		"@shop/entries-types": "1.3.2",
 		"@types/node": "^24.2.0",
 		"typescript": "^5.9.2",
 		"vite": "^6.0.4",
-    "@shop/api-types": "2.14.1",
-    "@shop/analytics-types": "1.11.1",
-    "@shop/entries-types": "1.3.2"
+		"vite-plugin-css-injected-by-js": "^3.5.2"
 	}
 }

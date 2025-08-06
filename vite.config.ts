@@ -1,9 +1,13 @@
 import { defineConfig } from 'vite';
 import preact from '@preact/preset-vite';
 import path from 'path';
+import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
 
 export default defineConfig({
-	plugins: [preact()],
+	plugins: [
+		preact(),
+		cssInjectedByJsPlugin()
+	],
 	resolve: {
 		alias: {
 			'@': path.resolve(__dirname, 'src'),
@@ -16,7 +20,7 @@ export default defineConfig({
       entry: path.resolve(__dirname, 'src/index.tsx'),
       // 打包成 ESM 模块
       formats: ['es'],
-      fileName: 'seel-insurance.js',
+      fileName: 'seel-insurance',
     },
     rollupOptions: {
       // 指定哪些依赖要外部引入，而不是打包进 lib 中
