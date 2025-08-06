@@ -1,15 +1,75 @@
-# `create-preact`
 
-<h2 align="center">
-  <img height="256" width="256" src="./src/assets/preact.svg">
-</h2>
+# SeelInsurance
 
-<h3 align="center">Get started using Preact and Vite!</h3>
+## 项目概述
 
-## Getting Started
+Seel运输保障是通过提供运输保障服务，减少跨境电商运输过程中因物流或其他原因导致的商品丢失、延误或损坏的风险，增加客户对店铺的信任和满意度。当出现需要理赔的情况时，客户将可以直接与第三方保险公司进行联系和协商，保险公司将承担所有的赔偿责任，商家无需介入。
+## 技术栈
 
--   `npm run dev` - Starts a dev server at http://localhost:5173/
+- **Vite 5**：现代前端构建工具，快速、轻量、易于配置。
+- **TypeScript**：简洁高效的前端开发方式。
+- **Svelte**：构建Web应用程序的新方法
+- **入口文件**：`src/index.ts`，作为插件的主要入口文件。
 
--   `npm run build` - Builds for production, emitting to `dist/`
+## 流程概览
 
--   `npm run preview` - Starts a server at http://localhost:4173/ to test production build locally
+### Build 阶段：
+- 在构建阶段进行代码构建和打包。
+- 生成 `seel-insurance.js` 文件并上传至 OSS。
+- 处理版本号和路径，确保文件上传正确。
+
+### Deploy 阶段：
+- 通过替换店铺地址来完成部署。
+- 执行与数据存储相关的任务（如保存自定义代码）。
+
+## 部署命令
+
+### 构建并部署
+
+在部署过程中，首先需要构建插件的生产版本，然后将构建后的文件上传至指定的 OSS 存储中。
+
+#### 构建命令
+
+- **`build`**：构建生产版本并生成需要上传的文件。
+
+  ```bash
+  yarn build
+该命令会执行以下步骤：
+
+生成生产版本的代码（通常在 dist/ 目录下）。
+使用环境变量来确定构建配置（开发、集成或生产环境）。
+部署命令
+部署过程中，我们会将构建好的文件上传到阿里云的 OSS，并通过自定义脚本将插件应用到目标店铺。
+
+#### 上传构建文件到 OSS
+
+在 CI/CD 流程中，构建阶段会自动将 index.js 文件上传到 OSS 存储。以下命令会根据环境变量动态设置上传路径：
+
+
+`aliyun oss cp dist/index.js $TARGET_PATH/index.js --update`
+
+`dist/seel-insurance.js`：构建后的文件路径。
+
+`$TARGET_PATH`：部署目标路径，根据环境（开发、集成、生产）动态变化。
+
+#### 生成并应用店铺代码
+
+上传完成后，生成并更新店铺所需的代码。例如，以下命令会在部署阶段生成并应用正确的脚本标签：
+
+
+`node ../generate-script-tag.js $BRANCH_NAME`
+此命令会根据当前分支生成对应的脚本，并将其应用到店铺中。
+
+#### 部署到不同环境
+
+根据环境（开发、集成、生产）不同，部署命令会有所不同，具体如下：
+
+开发环境：在特性阶段，走特性分支,Deploy阶段仅有一个按钮。
+
+集成环境：
+ - 预发测试阶段视为集成测试阶段，通常在 Git 的 tag 阶段进行。
+
+生产环境：
+  - 当审批通过后，商城侧会使用当前版本的 tag 流水线进行发布
+  - 发布过程中会手动触发升级阶段，这一阶段会触发线上店铺的自定义代码更新
+  - 通过打 tag 即可触发版本构建流程，从而更新生产环境中的插件代码

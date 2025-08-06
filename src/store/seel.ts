@@ -1,40 +1,46 @@
-import { signal, computed } from '@preact/signals';
-import { create_quotes_api, buildQuoteData, computeSymbolPrice } from '@/utils/seel';
-import type { SeelQuoteResponse, SeelInsuranceParams } from '@/types';
+import {writable, derived} from 'svelte/store';
+import {create_quotes_api, buildQuoteData, computeSymbolPrice, isEmpty} from '../utils/seel';
+import type {SeelQuoteResponse, SeelInsuranceParams} from '../types';
+import type {RawCartType} from "@shop/api-types";
 
 // 基础状态
-export const isShowSeelWidget = signal<boolean>(true);
-export const hasSubscribed = signal<boolean>(false);
-export const isAccepted = signal<boolean>(false);
-export const responseBody = signal<SeelQuoteResponse | null>(null);
+export let isShowSeelWidget = writable<boolean>(true);
+export const hasSubscribed = writable<boolean>(false);
+export const isAccepted = writable<boolean>(false);
+export const responseBody = writable<SeelQuoteResponse | null>(null);
 
 // 购物车和客户信息（从扩展点props获取）
-export const cart = signal<any>(null);
-export const customer = signal<any>({});
-export const showCurrencySelector = signal<boolean>(false);
+export const cart = writable(null);
+export const customer = writable<any>({});
+export const showCurrencySelector = writable<boolean>(false);
 
 // 派生状态：格式化的价格
-export const price = computed(() => {
-  const currentPrice = responseBody.value?.price || 0;
-  return computeSymbolPrice(currentPrice, showCurrencySelector.value);
-});
+export const price = derived(
+  [responseBody, showCurrencySelector],
+  ([$responseBody, $showCurrencySelector]) => {
+    const currentPrice = $responseBody?.price || 0;
+    return computeSymbolPrice(currentPrice, $showCurrencySelector);
+  }
+);
 
 // 派生状态：是否显示组件
-export const shouldShowWidget = computed(() => {
-  return isShowSeelWidget.value && responseBody.value && responseBody.value.price;
-});
+export const shouldShowWidget = derived(
+  [isShowSeelWidget, responseBody],
+  ([$isShowSeelWidget, $responseBody]) => {
+    return $isShowSeelWidget && $responseBody && $responseBody.price;
+  }
+);
 
 /**
  * 创建报价
  */
-export async function createQuotes(cartData: any): Promise<void> {
-  if (!cartData) return;
+export async function createQuotes(cartData: RawCartType): Promise<void> {
 
   const quoteData = buildQuoteData(cartData);
   const response = await create_quotes_api(quoteData);
 
   if (response) {
-    responseBody.value = response;
+    responseBody.set(response);
   }
 }
 
@@ -52,9 +58,10 @@ export async function setSeelShippingInsurance(params: SeelInsuranceParams): Pro
  * @param accepted 是否接受运费险
  */
 export async function handleChange(accepted: boolean): Promise<void> {
-  isAccepted.value = accepted;
+  isAccepted.set(accepted);
 
-  const currentResponseBody = responseBody.value;
+  const {get} = await import('svelte/store');
+  const currentResponseBody = get(responseBody);
 
   if (currentResponseBody) {
     await setSeelShippingInsurance({
@@ -69,17 +76,17 @@ export async function handleChange(accepted: boolean): Promise<void> {
  * 订阅购物车变化
  */
 export function subscribeCartChange(): void {
-  if (!window.shopSDK) return;
 
   window.shopSDK.register(['analytics'], ({analytics}) => {
-    const updateQuote = (ev: any) => createQuotes(ev.data.cart);
+    const updateQuote = (ev: any) => createQuotes(ev.data.cart)
     const hideWidget = async (ev: any) => {
-      if (!ev.data.cart || !ev.data.cart.items?.length) {
-        isShowSeelWidget.value = false;
-        return;
+      if (isEmpty(ev.data.cart.cart)) {
+        isShowSeelWidget.set(false)
+        // 这里应该调用后端接口删除seel报价
+        return
       }
-      await createQuotes(ev.data.cart);
-    };
+      await createQuotes(ev.data.cart)
+    }
 
     const quoteEvents = [
       'product_changed_quantity_from_cart',
@@ -88,16 +95,16 @@ export function subscribeCartChange(): void {
       'product_batch_added_to_cart',
     ];
 
-    const removeEvents = ['product_removed_from_cart', 'product_batch_removed_from_cart'];
+    const removeEvents = ['product_removed_from_cart', 'product_batch_removed_from_cart']
 
     quoteEvents.forEach((event) => {
-      analytics.event.subscribe(event as any, updateQuote);
-    });
+      analytics.event.subscribe(event, updateQuote)
+    })
 
     removeEvents.forEach((event) => {
-      analytics.event.subscribe(event as any, hideWidget);
-    });
-  });
+      analytics.event.subscribe(event, hideWidget)
+    })
+  })
 }
 
 /**
@@ -105,18 +112,15 @@ export function subscribeCartChange(): void {
  * @param props 从扩展点传入的props
  */
 export function initializeSeelWidget(props: any): void {
-  if (props.cart) {
-    cart.value = props.cart;
-  }
+  // 初始化购物车和客户信息
+  console.log('props:', props)
 
-  if (props.customer) {
-    customer.value = props.customer;
-  }
+  cart.set(props.cart);
+  customer.set(props.customer);
+  showCurrencySelector.set(props.showCurrencySelector);
 
-  if (typeof props.showCurrencySelector === 'boolean') {
-    showCurrencySelector.value = props.showCurrencySelector;
-  }
+  setTimeout(() => createQuotes(props.cart), 100);
 
   subscribeCartChange();
-  setTimeout(() => createQuotes(props.cart), 100);
+
 }
