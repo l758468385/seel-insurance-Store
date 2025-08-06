@@ -22,10 +22,6 @@ export default defineConfig({
       formats: ['es'],
       fileName: 'seel-insurance',
     },
-    rollupOptions: {
-      // 指定哪些依赖要外部引入，而不是打包进 lib 中
-      external: ['preact'],
-    },
     target: 'es2015',
   },
 });
