@@ -38,7 +38,7 @@ export async function createQuotes(cartData: RawCartType): Promise<void> {
 
   const quoteData = buildQuoteData(cartData);
   const response = await create_quotes_api(quoteData);
-
+  console.log('response',response)
   if (response) {
     responseBody.set(response);
   }
@@ -113,14 +113,10 @@ export function subscribeCartChange(): void {
  */
 export function initializeSeelWidget(props: any): void {
   // 初始化购物车和客户信息
-  console.log('props:', props)
-
-  cart.set(props.cart);
+  cart.set(props.cartData);
   customer.set(props.customer);
   showCurrencySelector.set(props.showCurrencySelector);
 
-  setTimeout(() => createQuotes(props.cart), 100);
-
+  setTimeout(() => createQuotes(props.cartData), 100);
   subscribeCartChange();
-
 }

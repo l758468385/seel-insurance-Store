@@ -1,20 +1,17 @@
 import type { SeelQuoteResponse, QuoteRequestPayload } from '../types';
+import { get } from 'svelte/store';
+import {customer} from "../store/seel";
 
 const CREATE_QUOTES_API =  'https://api-test.seel.com/v1/ecommerce/quotes'
 const API_KEY = '1xcaluauh1xajfyvj4w6u5b20zlq3u98'
-
 /**
- * 格式化价格显示
- * @param price 价格数值
- * @param currency 货币符号，默认为 '$'
- * @returns 格式化后的价格字符串
+ * 保留两位小数
+ * @param {number | string} price
+ * @returns {number}
  */
-export function formatPrice(price: number, currency: string = '$'): string {
-  if (typeof price !== 'number' || isNaN(price)) {
-    return `${currency}0.00`;
-  }
-
-  return `${currency}${price.toFixed(2)}`;
+function formatPrice(price: number | string): number {
+  const num = Number(price)
+  return isNaN(num) ? 0 : Math.round(num * 100) / 100
 }
 
 /**
@@ -58,16 +55,34 @@ export function getDevicePlatform() {
  * @returns Promise<SeelQuoteResponse | null>
  */
 export async function create_quotes_api(payload: QuoteRequestPayload): Promise<SeelQuoteResponse | null> {
-  // 这里应该调用实际的API
-  // 暂时返回模拟数据
-  await new Promise(resolve => setTimeout(resolve, 500));
+  try {
+    const res = await fetch(CREATE_QUOTES_API, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Seel-API-Key': API_KEY,
+        'X-Seel-Api-Version': '2.6.0'
+      },
+      body: JSON.stringify(payload)
+    });
 
-  return {
-    price: 2.99,
-    quote_id: 'quote_' + Date.now(),
-    currency: '$'
-  };
+    console.log('res:', res); // 可以打印 Response 对象（只包含元信息）
+
+    if (!res.ok) {
+      console.error('Failed to fetch quote:', res.status);
+      return null;
+    }
+
+    const data = await res.json(); // ✅ 只读取一次
+    console.log('Quote API response:', data);
+    return data as SeelQuoteResponse;
+
+  } catch (err) {
+    console.error('Error creating quote:', err);
+    return null;
+  }
 }
+
 
 /**
  * 构建报价数据
@@ -75,14 +90,67 @@ export async function create_quotes_api(payload: QuoteRequestPayload): Promise<S
  * @returns 报价请求载荷
  */
 export function buildQuoteData(cartData: any): QuoteRequestPayload {
+  console.log('cartData',cartData)
+
+  const { hash, cart, currency, address = {}, shipping_total } = cartData
+
+  const unitPrice = (total: number, quantity: number) => formatPrice(total / quantity)
+
+  const line_items = Object.values(cart).map((item) => {
+    // @ts-ignore
+    const { key, product_id, variation_id, quantity, price, line_tax, line_total, categories, product, variant } =
+        item
+
+    const unitFinalPrice = unitPrice(line_total + line_tax, quantity)
+    const unitSalesTax = unitPrice(line_tax, quantity)
+    const unitAllocatedDiscount = formatPrice(price + unitSalesTax - unitFinalPrice)
+
+    return {
+      line_item_id: key,
+      product_id,
+      product_title: product?.title,
+      variant_id: variation_id || product_id,
+      variant_title: variant?.title || product?.title,
+      quantity,
+      price: formatPrice(price),
+      sales_tax: unitSalesTax,
+      final_price: unitFinalPrice,
+      allocated_discounts: unitAllocatedDiscount,
+      currency,
+      requires_shipping: true,
+      category_1: categories?.[0]?.name || '',
+      category_2: categories?.[1]?.name || '',
+      is_final_sale: false,
+      condition: 'new',
+      image_urls: [product?.feature_image?.url].filter(Boolean),
+    }
+  })
+
   return {
-    cart_total: cartData?.total || 0,
-    items: cartData?.items || [],
-    currency: cartData?.currency || 'USD',
+    type: 'ttdeye-wfp',
+    cart_id: hash,
+    session_id: hash,
+    merchant_id: '20250709203702806565',
+    is_default_on: false,
     device_category: getDeviceCategory(),
     device_platform: getDevicePlatform(),
-    timestamp: Date.now()
-  };
+    line_items,
+    shipping_address: {
+      address_1: address.address_1 || 'US',
+      address_2: address.address_2 || 'US',
+      city: address.city || 'US',
+      state: address.state || 'US',
+      zipcode: address.postcode || 'US',
+      country: address.country || 'US',
+    },
+    customer: {
+      customer_id: get(customer).id || address.email || localStorage.getItem('uuid') || '',
+      email: get(customer).email || address.email || 'test@test.com',
+    },
+    extra_info: {
+      shipping_fee: shipping_total || 0,
+    },
+  }
 }
 
 /**
@@ -91,10 +159,10 @@ export function buildQuoteData(cartData: any): QuoteRequestPayload {
  * @param showCurrencySelector 是否显示货币选择器
  * @returns 格式化的价格字符串
  */
-export function computeSymbolPrice(price: number, showCurrencySelector: boolean = false): string {
+export function computeSymbolPrice(price: number, showCurrencySelector: boolean = false): number {
   // 这里可以根据实际需求实现货币符号逻辑
   const currency = showCurrencySelector ? getCurrencySymbol() : '$';
-  return formatPrice(price, currency);
+  return formatPrice(price);
 }
 
 /**

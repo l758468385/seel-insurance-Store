@@ -1,16 +1,11 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import CheckBox from './CheckBox.svelte';
   import {
     shouldShowWidget,
     isAccepted,
     price,
-    handleChange,
-    initializeSeelWidget
+    handleChange
   } from '../store/seel';
-
-  // 从扩展点传入的props
-  export let props: any = {};
 
   // 响应式变量
   $: showWidget = $shouldShowWidget;
@@ -22,10 +17,6 @@
     handleChange(checked);
   }
 
-  // 组件挂载时初始化
-  onMount(() => {
-    initializeSeelWidget(props);
-  });
 </script>
 
 {#if showWidget}
