@@ -1,6 +1,9 @@
 import SeelWidget from './components/SeelWidget.svelte';
 import { initializeSeelWidget } from './store/seel';
+import SeelBanner from "./components/SeelBanner.svelte";
 
+
+// 抽屉购物车底部运费险小组件
 window.UIExtensionPointSimpleMgr.extend('CartContentsAfterSeelWidget', () => {
   const container = document.createElement('div');
   container.className = 'seel-widget-container';
@@ -27,7 +30,7 @@ window.UIExtensionPointSimpleMgr.extend('CartContentsAfterSeelWidget', () => {
   return container;
 });
 
-
+// 购物车页顶部渲染运费险组件(仅PC端)
 window.UIExtensionPointSimpleMgr.extend('CartPageRightTopSeelWidget', () => {
   const container = document.createElement('div');
   container.className = 'seel-widget-container';
@@ -54,7 +57,7 @@ window.UIExtensionPointSimpleMgr.extend('CartPageRightTopSeelWidget', () => {
   return container;
 });
 
-
+// 渲染购物车页运费险组件(快捷支付下方 仅移动端)
 window.UIExtensionPointSimpleMgr.extend('CartPageAfterContentSeelWidget', () => {
   const container = document.createElement('div');
   container.className = 'seel-widget-container';
@@ -78,5 +81,15 @@ window.UIExtensionPointSimpleMgr.extend('CartPageAfterContentSeelWidget', () => 
   };
 
   initializeComponent();
+  return container;
+});
+
+// 渲染产品页欢迎横幅
+window.UIExtensionPointSimpleMgr.extend('SalesFeaturesAfterSeelWidget', () => {
+  const container = document.createElement('div');
+  container.className = 'seel-banner-container';
+  new SeelBanner({
+    target: container,
+  });
   return container;
 });
