@@ -12,8 +12,6 @@ window.UIExtensionPointSimpleMgr.extend('CartContentsAfterSeelWidget', () => {
   const initializeComponent = async () => {
     const {value: cartData} = await window.pollUntilAvailable(() => window.store?.state?.cart);
 
-    console.log('入口文件：购物车数据 cartData', cartData);
-
     // 先初始化 Seel 组件状态
     initializeSeelWidget({
       cartData: cartData,
@@ -21,7 +19,6 @@ window.UIExtensionPointSimpleMgr.extend('CartContentsAfterSeelWidget', () => {
       showCurrencySelector: window.store.state.options.theme?.global?.show_currency_selector,
     });
 
-    // 然后创建 Svelte 组件
     new SeelWidget({
       target: container,
     });
@@ -39,8 +36,6 @@ window.UIExtensionPointSimpleMgr.extend('CartPageRightTopSeelWidget', () => {
   const initializeComponent = async () => {
     const {value: cartData} = await window.pollUntilAvailable(() => window.store?.state?.cart);
 
-    console.log('入口文件：购物车数据 cartData', cartData);
-
     // 先初始化 Seel 组件状态
     initializeSeelWidget({
       cartData: cartData,
@@ -48,7 +43,6 @@ window.UIExtensionPointSimpleMgr.extend('CartPageRightTopSeelWidget', () => {
       showCurrencySelector: window.store.state.options.theme?.global?.show_currency_selector,
     });
 
-    // 然后创建 Svelte 组件
     new SeelWidget({
       target: container,
       props: {
@@ -69,8 +63,6 @@ window.UIExtensionPointSimpleMgr.extend('CartPageAfterContentSeelWidget', () => 
   const initializeComponent = async () => {
     const {value: cartData} = await window.pollUntilAvailable(() => window.store?.state?.cart);
 
-    console.log('入口文件：购物车数据 cartData', cartData);
-
     // 先初始化 Seel 组件状态
     initializeSeelWidget({
       cartData: cartData,
@@ -78,7 +70,6 @@ window.UIExtensionPointSimpleMgr.extend('CartPageAfterContentSeelWidget', () => 
       showCurrencySelector: window.store.state.options.theme?.global?.show_currency_selector,
     });
 
-    // 然后创建 Svelte 组件
     new SeelWidget({
       target: container,
       props: {
