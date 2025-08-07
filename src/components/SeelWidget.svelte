@@ -20,7 +20,7 @@
 
     <div class="seel-widget__content">
       <div class="seel-widget__title">
-        <span class="seel-widget__title-text">Worry-Free Delivery</span>
+        <span class="seel-widget__title-text">Worry-Free Delivery</span>&nbsp;
         <span class="seel-widget__title-price">
           for {formattedPrice}
         </span>
@@ -63,10 +63,6 @@
 
     &-text {
       font-weight: 600;
-    }
-
-    &-price {
-      margin-left: 4px;
     }
   }
 
