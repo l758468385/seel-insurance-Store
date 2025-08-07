@@ -14,12 +14,15 @@ export const cart = writable(null);
 export const customer = writable<any>({});
 export const showCurrencySelector = writable<boolean>(false);
 
+// 主应用的货币类型状态
+export const mainAppPriceType = writable<string>('USD');
+
 // 派生状态：格式化的价格
 export const price = derived(
-  [responseBody],
-  ([$responseBody]) => {
+  [responseBody, mainAppPriceType, showCurrencySelector],
+  ([$responseBody, $mainAppPriceType, $showCurrencySelector]) => {
     const currentPrice = $responseBody?.price || 0;
-    return computeSymbolPrice(currentPrice);
+    return computeSymbolPrice(currentPrice, $showCurrencySelector, $mainAppPriceType);
   }
 );
 
@@ -73,6 +76,27 @@ export async function handleChange(accepted: boolean): Promise<void> {
 }
 
 /**
+ * 监听主应用货币类型变化
+ */
+export function watchMainAppPriceType(): void {
+  // 初始化当前货币类型
+  if (window.store?.state?.pricetype) {
+    mainAppPriceType.set(window.store.state.pricetype);
+  }
+
+  // 如果主应用使用 Vuex，监听状态变化
+  if (window.store?.watch) {
+    window.store.watch(
+      (state: any) => state.pricetype,
+      (newPriceType: string) => {
+        console.log('主应用货币类型变化:', newPriceType);
+        mainAppPriceType.set(newPriceType);
+      }
+    );
+  }
+}
+
+/**
  * 订阅购物车变化
  */
 export function subscribeCartChange(): void {
@@ -113,10 +137,13 @@ export function subscribeCartChange(): void {
  */
 export function initializeSeelWidget(props: any): void {
   // 初始化购物车和客户信息
-  cart.set(props.cartData);
-  customer.set(props.customer);
-  showCurrencySelector.set(props.showCurrencySelector);
+  cart.set(props.cartData || props.cart);
+  customer.set(props.customer || {});
+  showCurrencySelector.set(props.showCurrencySelector || false);
 
-  setTimeout(() => createQuotes(props.cartData), 100);
+  // 监听主应用货币类型变化
+  watchMainAppPriceType();
+
+  setTimeout(() => createQuotes(props.cartData || props.cart), 100);
   subscribeCartChange();
 }

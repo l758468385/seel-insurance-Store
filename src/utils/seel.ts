@@ -156,10 +156,21 @@ export function buildQuoteData(cartData: any): QuoteRequestPayload {
 /**
  * 计算带符号的价格
  * @param price 价格数值
+ * @param showCurrencySelector 是否显示货币选择器
+ * @param priceType 主应用的货币类型
  * @returns 格式化的价格字符串
  */
-export function computeSymbolPrice(price: number): number {
-  // 主应用 vue 上自带的格式化金钱的方法
-  return window.__app.computeSymbolPrice(price);
+export function computeSymbolPrice(
+  price: number,
+  showCurrencySelector: boolean = false,
+  priceType?: string
+): number {
+  // 如果主应用有自定义的价格计算方法，优先使用
+  if (window.__app?.computeSymbolPrice) {
+    return window.__app.computeSymbolPrice(price, priceType);
+  }
+
+  // 否则使用默认的格式化方法
+  return price;
 }
 
