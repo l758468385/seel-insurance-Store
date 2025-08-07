@@ -1,23 +1,30 @@
-import {writable, derived} from 'svelte/store';
-import {create_quotes_api, buildQuoteData, computeSymbolPrice, isEmpty} from '../utils/seel';
-import type {SeelQuoteResponse, SeelInsuranceParams} from '../types';
-import type {RawCartType} from "@shop/api-types";
+import { writable, derived } from 'svelte/store';
+import { create_quotes_api, buildQuoteData, computeSymbolPrice, isEmpty } from '../utils/seel';
+import type { SeelQuoteResponse, SeelInsuranceParams } from '../types';
+import type { RawCartType } from "@shop/api-types";
 
-// 基础状态
-export let isShowSeelWidget = writable<boolean>(true);
-export const hasSubscribed = writable<boolean>(false);
+// ===== 全局状态管理 =====
+// 这些状态在所有 SeelWidget 组件间共享，确保状态统一
+
+// 组件显示状态
+export const isShowSeelWidget = writable<boolean>(true);
 export const isAccepted = writable<boolean>(false);
 export const responseBody = writable<SeelQuoteResponse | null>(null);
 
-// 购物车和客户信息（从扩展点props获取）
-export const cart = writable(null);
+// 购物车和用户信息
+export const cart = writable<RawCartType | null>(null);
 export const customer = writable<any>({});
-export const showCurrencySelector = writable<boolean>(false);
 
-// 主应用的货币类型状态
+// 货币相关状态
+export const showCurrencySelector = writable<boolean>(false);
 export const mainAppPriceType = writable<string>('USD');
 
-// 派生状态：格式化的价格
+// 初始化状态
+let isInitialized = false;
+
+// ===== 派生状态 =====
+// 这些状态会自动响应基础状态的变化
+
 export const price = derived(
   [responseBody, mainAppPriceType, showCurrencySelector],
   ([$responseBody, $mainAppPriceType, $showCurrencySelector]) => {
@@ -26,7 +33,6 @@ export const price = derived(
   }
 );
 
-// 派生状态：是否显示组件
 export const shouldShowWidget = derived(
   [isShowSeelWidget, responseBody],
   ([$isShowSeelWidget, $responseBody]) => {
@@ -34,36 +40,23 @@ export const shouldShowWidget = derived(
   }
 );
 
-/**
- * 创建报价
- */
+// ===== 核心业务逻辑 =====
+
 export async function createQuotes(cartData: RawCartType): Promise<void> {
+  if (!cartData) return;
 
   const quoteData = buildQuoteData(cartData);
   const response = await create_quotes_api(quoteData);
-  console.log('response',response)
+
   if (response) {
     responseBody.set(response);
   }
 }
 
-/**
- * 设置 Seel 运费险
- * @param params 运费险参数
- */
-export async function setSeelShippingInsurance(params: SeelInsuranceParams): Promise<void> {
-  // 这里应该调用实际的API来设置运费险
-  await new Promise(resolve => setTimeout(resolve, 300));
-}
-
-/**
- * 处理运费险变化
- * @param accepted 是否接受运费险
- */
 export async function handleChange(accepted: boolean): Promise<void> {
   isAccepted.set(accepted);
 
-  const {get} = await import('svelte/store');
+  const { get } = await import('svelte/store');
   const currentResponseBody = get(responseBody);
 
   if (currentResponseBody) {
@@ -75,42 +68,37 @@ export async function handleChange(accepted: boolean): Promise<void> {
   }
 }
 
-/**
- * 监听主应用货币类型变化
- */
-export function watchMainAppPriceType(): void {
-  // 初始化当前货币类型
+async function setSeelShippingInsurance(params: SeelInsuranceParams): Promise<void> {
+  await new Promise(resolve => setTimeout(resolve, 300));
+}
+
+// ===== 事件监听和初始化 =====
+
+function watchMainAppPriceType(): void {
   if (window.store?.state?.pricetype) {
     mainAppPriceType.set(window.store.state.pricetype);
   }
 
-  // 如果主应用使用 Vuex，监听状态变化
   if (window.store?.watch) {
     window.store.watch(
       (state: any) => state.pricetype,
-      (newPriceType: string) => {
-        console.log('主应用货币类型变化:', newPriceType);
-        mainAppPriceType.set(newPriceType);
-      }
+      (newPriceType: string) => mainAppPriceType.set(newPriceType)
     );
   }
 }
 
-/**
- * 订阅购物车变化
- */
-export function subscribeCartChange(): void {
+function subscribeCartChange(): void {
+  if (!window.shopSDK) return;
 
-  window.shopSDK.register(['analytics'], ({analytics}) => {
-    const updateQuote = (ev: any) => createQuotes(ev.data.cart)
+  window.shopSDK.register(['analytics'], ({ analytics }) => {
+    const updateQuote = (ev: any) => createQuotes(ev.data.cart);
     const hideWidget = async (ev: any) => {
       if (isEmpty(ev.data.cart.cart)) {
-        isShowSeelWidget.set(false)
-        // 这里应该调用后端接口删除seel报价
-        return
+        isShowSeelWidget.set(false);
+        return;
       }
-      await createQuotes(ev.data.cart)
-    }
+      await createQuotes(ev.data.cart);
+    };
 
     const quoteEvents = [
       'product_changed_quantity_from_cart',
@@ -119,31 +107,31 @@ export function subscribeCartChange(): void {
       'product_batch_added_to_cart',
     ];
 
-    const removeEvents = ['product_removed_from_cart', 'product_batch_removed_from_cart']
+    const removeEvents = [
+      'product_removed_from_cart',
+      'product_batch_removed_from_cart'
+    ];
 
-    quoteEvents.forEach((event) => {
-      analytics.event.subscribe(event as any, updateQuote)
-    })
-
-    removeEvents.forEach((event) => {
-      analytics.event.subscribe(event as any, hideWidget)
-    })
-  })
+    quoteEvents.forEach(event => analytics.event.subscribe(event as any, updateQuote));
+    removeEvents.forEach(event => analytics.event.subscribe(event as any, hideWidget));
+  });
 }
 
-/**
- * 初始化 Seel 组件
- * @param props 从扩展点传入的props
- */
+// ===== 公共初始化函数 =====
+// 确保多个组件实例共享同一状态，只初始化一次
+
 export function initializeSeelWidget(props: any): void {
-  // 初始化购物车和客户信息
+  // 防止重复初始化
+  if (isInitialized) return;
+
   cart.set(props.cartData || props.cart);
   customer.set(props.customer || {});
   showCurrencySelector.set(props.showCurrencySelector || false);
 
-  // 监听主应用货币类型变化
   watchMainAppPriceType();
+  subscribeCartChange();
 
   setTimeout(() => createQuotes(props.cartData || props.cart), 100);
-  subscribeCartChange();
+
+  isInitialized = true;
 }

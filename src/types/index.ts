@@ -43,6 +43,7 @@ declare global {
         cart: RawCartType;
         [key: string]: any;
       };
+      watch: (getter: (state: any) => any, callback: (newValue: any, oldValue: any) => void) => void;
     };
     pollUntilAvailable: (checkFn: () => any, options?: { timeout?: number; interval?: number }) => Promise<{ value: any }>;
     __app:any;

@@ -1,29 +1,18 @@
 <script lang="ts">
   import CheckBox from './CheckBox.svelte';
-  import {
-    shouldShowWidget,
-    isAccepted,
-    price,
-    handleChange
-  } from '../store/seel';
+  import { shouldShowWidget, isAccepted, price, handleChange } from '../store/seel';
 
-  // 响应式变量
+  // 所有状态都是全局共享的，多个组件实例会自动同步
   $: showWidget = $shouldShowWidget;
   $: accepted = $isAccepted;
   $: formattedPrice = $price;
-
-  // 处理复选框变化
-  function onCheckboxChange(checked: boolean) {
-    handleChange(checked);
-  }
-
 </script>
 
 {#if showWidget}
   <div class="seel-widget">
     <CheckBox
       checked={accepted}
-      onChange={onCheckboxChange}
+      onChange={handleChange}
       class="seel-widget__checkbox"
     />
 

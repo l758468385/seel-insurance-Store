@@ -90,7 +90,6 @@ export async function create_quotes_api(payload: QuoteRequestPayload): Promise<S
  * @returns 报价请求载荷
  */
 export function buildQuoteData(cartData: any): QuoteRequestPayload {
-  console.log('cartData',cartData)
 
   const { hash, cart, currency, address = {}, shipping_total } = cartData
 
