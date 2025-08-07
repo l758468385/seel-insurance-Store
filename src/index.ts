@@ -1,6 +1,7 @@
 import SeelWidget from './components/SeelWidget.svelte';
 import { initializeSeelWidget } from './store/seel';
 import SeelBanner from "./components/SeelBanner.svelte";
+import SeelCustomerHelp from "./components/SeelCustomerHelp.svelte";
 
 
 // 抽屉购物车底部运费险小组件
@@ -89,6 +90,18 @@ window.UIExtensionPointSimpleMgr.extend('SalesFeaturesAfterSeelWidget', () => {
   const container = document.createElement('div');
   container.className = 'seel-banner-container';
   new SeelBanner({
+    target: container,
+  });
+  return container;
+});
+
+
+
+// thank you 页面客服中心入口
+window.UIExtensionPointSimpleMgr.extend('ThankYouAfterOrderTrackSeelWidget', () => {
+  const container = document.createElement('div');
+  container.className = 'seel-customer-help-container';
+  new SeelCustomerHelp({
     target: container,
   });
   return container;
