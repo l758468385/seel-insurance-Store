@@ -45,5 +45,6 @@ declare global {
       };
     };
     pollUntilAvailable: (checkFn: () => any, options?: { timeout?: number; interval?: number }) => Promise<{ value: any }>;
+    __app:any;
   }
 }

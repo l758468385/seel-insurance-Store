@@ -16,10 +16,10 @@ export const showCurrencySelector = writable<boolean>(false);
 
 // 派生状态：格式化的价格
 export const price = derived(
-  [responseBody, showCurrencySelector],
-  ([$responseBody, $showCurrencySelector]) => {
+  [responseBody],
+  ([$responseBody]) => {
     const currentPrice = $responseBody?.price || 0;
-    return computeSymbolPrice(currentPrice, $showCurrencySelector);
+    return computeSymbolPrice(currentPrice);
   }
 );
 
