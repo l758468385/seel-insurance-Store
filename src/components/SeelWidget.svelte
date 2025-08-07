@@ -6,10 +6,12 @@
   $: showWidget = $shouldShowWidget;
   $: accepted = $isAccepted;
   $: formattedPrice = $price;
+
+  export let pointName: string = ''
 </script>
 
 {#if showWidget}
-  <div class="seel-widget">
+  <div class={`seel-widget ${pointName}`}>
     <CheckBox
       checked={accepted}
       onChange={handleChange}
@@ -40,6 +42,7 @@
   border: 1px solid #d6d7da;
   padding: 12px;
   border-radius: 5px;
+
 
   :global(.seel-widget__checkbox) {
     margin-right: 12px;
@@ -84,4 +87,15 @@
     color: #645aff;
   }
 }
+
+
+.CartPageAfterContentSeelWidget {
+  margin: 20px 10px 0 10px;
+}
+
+
+.CartPageRightTopSeelWidget {
+  margin: 0 20px 10px 20px;
+}
+
 </style>

@@ -51,6 +51,9 @@ window.UIExtensionPointSimpleMgr.extend('CartPageRightTopSeelWidget', () => {
     // 然后创建 Svelte 组件
     new SeelWidget({
       target: container,
+      props: {
+        pointName: 'CartPageRightTopSeelWidget',
+      },
     });
   };
 
@@ -78,6 +81,9 @@ window.UIExtensionPointSimpleMgr.extend('CartPageAfterContentSeelWidget', () => 
     // 然后创建 Svelte 组件
     new SeelWidget({
       target: container,
+      props: {
+        pointName: 'CartPageAfterContentSeelWidget',
+      },
     });
   };
 
@@ -109,11 +115,14 @@ window.UIExtensionPointSimpleMgr.extend('ThankYouAfterOrderTrackSeelWidget', () 
 
 
 // 订单详情页客服中心入口
-window.UIExtensionPointSimpleMgr.extend('OrderDetailBeforeTableSeelWidget', () => {
+window.UIExtensionPointSimpleMgr.extend('OrderDetailBeforeTableSeelWidget', (props) => {
   const container = document.createElement('div');
   container.className = 'seel-customer-help-container';
   new SeelCustomerHelp({
     target: container,
+    props:{
+      pointName: 'OrderDetailBeforeTableSeelWidget',
+    }
   });
   return container;
 });

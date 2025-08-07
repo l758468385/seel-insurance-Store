@@ -3,12 +3,15 @@
   export let description: string = 'Your order includes Worry-Free Delivery. If any issues arise, you can file a claim.';
   export let buttonText: string = 'File a Claim';
 
+  export let pointName: string = ''
+
+
   function handleFileClaim() {
     console.log('File a claim')
   }
 </script>
 
-<div class="seel-customer-help">
+<div class={`seel-customer-help ${pointName}`}>
   <div class="seel-customer-help__content">
     <div class="seel-customer-help__icon">
       <svg width="20" height="24" viewBox="0 0 20 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -51,7 +54,9 @@
     font-family: inherit;
     text-align: left;
   }
-
+  .OrderDetailBeforeTableSeelWidget {
+    margin-bottom: 30px;
+  }
   .seel-customer-help__content {
     display: flex;
     flex: 1;
@@ -114,5 +119,10 @@
       margin-left: 0;
       margin-top: 12px;
     }
+
+    .OrderDetailBeforeTableSeelWidget {
+      margin: 15px 15px 20px 15px;
+    }
+
   }
 </style>
