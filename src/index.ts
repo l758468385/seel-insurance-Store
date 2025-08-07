@@ -106,3 +106,14 @@ window.UIExtensionPointSimpleMgr.extend('ThankYouAfterOrderTrackSeelWidget', () 
   });
   return container;
 });
+
+
+// 订单详情页客服中心入口
+window.UIExtensionPointSimpleMgr.extend('OrderDetailBeforeTableSeelWidget', () => {
+  const container = document.createElement('div');
+  container.className = 'seel-customer-help-container';
+  new SeelCustomerHelp({
+    target: container,
+  });
+  return container;
+});

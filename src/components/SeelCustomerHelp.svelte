@@ -49,6 +49,7 @@
     justify-content: space-between;
     align-items: center;
     font-family: inherit;
+    text-align: left;
   }
 
   .seel-customer-help__content {
@@ -86,7 +87,7 @@
   }
 
   .seel-customer-help__button {
-    background-color: var(--checkout-btn-color);
+    background-color: var(--checkout-btn-color, var(--main-btn-bg, #333));
     color: white;
     border: none;
     border-radius: 5px;
