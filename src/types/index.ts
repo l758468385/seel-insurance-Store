@@ -45,7 +45,7 @@ declare global {
       };
       watch: (getter: (state: any) => any, callback: (newValue: any, oldValue: any) => void) => void;
     };
-    pollUntilAvailable: (checkFn: () => any, options?: { timeout?: number; interval?: number }) => Promise<{ value: any }>;
+    pollUntilAvailable: (checkFn: () => any, options?: { maxAttempts?: number; interval?: number }) => Promise<{ value: any }>;
     __app:any;
   }
 }

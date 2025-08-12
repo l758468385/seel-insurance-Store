@@ -91,29 +91,16 @@ function subscribeCartChange(): void {
   if (!window.shopSDK) return;
 
   window.shopSDK.register(['analytics'], ({ analytics }) => {
-    const updateQuote = (ev: any) => createQuotes(ev.data.cart);
-    const hideWidget = async (ev: any) => {
-      if (isEmpty(ev.data.cart.cart)) {
+    analytics.data.cart.onChange((cartData: any) => {
+      const { cart } = cartData || {};
+      console.log('cart changed', isEmpty(cart));
+      if (isEmpty(cart)) {
+        // 这边应该也需要去请求一个接口去取消运费险
         isShowSeelWidget.set(false);
         return;
       }
-      await createQuotes(ev.data.cart);
-    };
-
-    const quoteEvents = [
-      'product_changed_quantity_from_cart',
-      'product_batch_changed_quantity_from_cart',
-      'product_added_to_cart',
-      'product_batch_added_to_cart',
-    ];
-
-    const removeEvents = [
-      'product_removed_from_cart',
-      'product_batch_removed_from_cart'
-    ];
-
-    quoteEvents.forEach(event => analytics.event.subscribe(event as any, updateQuote));
-    removeEvents.forEach(event => analytics.event.subscribe(event as any, hideWidget));
+      createQuotes(cartData);
+    });
   });
 }
 
