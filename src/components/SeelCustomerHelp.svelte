@@ -54,7 +54,7 @@
     font-family: inherit;
     text-align: left;
   }
-  .OrderDetailBeforeTableSeelWidget {
+  .OrderDetailBeforeTable {
     margin-bottom: 30px;
   }
   .seel-customer-help__content {
@@ -120,7 +120,7 @@
       margin-top: 12px;
     }
 
-    .OrderDetailBeforeTableSeelWidget {
+    .OrderDetailBeforeTable {
       margin: 15px 15px 20px 15px;
     }
 

@@ -85,12 +85,12 @@
 }
 
 
-.CartPageAfterContentSeelWidget {
+.CartPageContentEnd {
   margin: 20px 10px 0 10px;
 }
 
 
-.CartPageRightTopSeelWidget {
+.CartPageContentsBefore {
   margin: 0 20px 10px 20px;
 }
 

@@ -1,11 +1,11 @@
 import SeelWidget from './components/SeelWidget.svelte';
-import { initializeSeelWidget } from './store/seel';
 import SeelBanner from "./components/SeelBanner.svelte";
 import SeelCustomerHelp from "./components/SeelCustomerHelp.svelte";
 
+import { initializeSeelWidget } from './store/seel';
 
-// 抽屉购物车底部运费险小组件
-window.UIExtensionPointSimpleMgr.extend('CartContentsAfterSeelWidget', () => {
+// 抽屉购物车内容区域的最底部（快捷支付区域的下方）
+window.UIExtensionPointSimpleMgr.extend('CartContentsEnd', () => {
   const container = document.createElement('div');
   container.className = 'seel-widget-container';
 
@@ -29,7 +29,7 @@ window.UIExtensionPointSimpleMgr.extend('CartContentsAfterSeelWidget', () => {
 });
 
 // 购物车页顶部渲染运费险组件(仅PC端)
-window.UIExtensionPointSimpleMgr.extend('CartPageRightTopSeelWidget', () => {
+window.UIExtensionPointSimpleMgr.extend('CartPageContentsBefore', () => {
   const container = document.createElement('div');
   container.className = 'seel-widget-container';
 
@@ -46,7 +46,7 @@ window.UIExtensionPointSimpleMgr.extend('CartPageRightTopSeelWidget', () => {
     new SeelWidget({
       target: container,
       props: {
-        pointName: 'CartPageRightTopSeelWidget',
+        pointName: 'CartPageContentsBefore',
       },
     });
   };
@@ -55,8 +55,8 @@ window.UIExtensionPointSimpleMgr.extend('CartPageRightTopSeelWidget', () => {
   return container;
 });
 
-// 渲染购物车页运费险组件(快捷支付下方 仅移动端)
-window.UIExtensionPointSimpleMgr.extend('CartPageAfterContentSeelWidget', () => {
+// 购物车页运费险组件(快捷支付下方 仅移动端)
+window.UIExtensionPointSimpleMgr.extend('CartPageContentEnd', () => {
   const container = document.createElement('div');
   container.className = 'seel-widget-container';
 
@@ -73,7 +73,7 @@ window.UIExtensionPointSimpleMgr.extend('CartPageAfterContentSeelWidget', () => 
     new SeelWidget({
       target: container,
       props: {
-        pointName: 'CartPageAfterContentSeelWidget',
+        pointName: 'CartPageContentEnd',
       },
     });
   };
@@ -83,7 +83,7 @@ window.UIExtensionPointSimpleMgr.extend('CartPageAfterContentSeelWidget', () => 
 });
 
 // 渲染产品页欢迎横幅
-window.UIExtensionPointSimpleMgr.extend('SalesFeaturesAfterSeelWidget', () => {
+window.UIExtensionPointSimpleMgr.extend('SalesFeaturesAfter', () => {
   const container = document.createElement('div');
   container.className = 'seel-banner-container';
   new SeelBanner({
@@ -95,7 +95,7 @@ window.UIExtensionPointSimpleMgr.extend('SalesFeaturesAfterSeelWidget', () => {
 
 
 // thank you 页面客服中心入口
-window.UIExtensionPointSimpleMgr.extend('ThankYouAfterOrderTrackSeelWidget', () => {
+window.UIExtensionPointSimpleMgr.extend('ThankYouAfterOrderTrack', () => {
   const container = document.createElement('div');
   container.className = 'seel-customer-help-container';
   new SeelCustomerHelp({
@@ -106,13 +106,13 @@ window.UIExtensionPointSimpleMgr.extend('ThankYouAfterOrderTrackSeelWidget', () 
 
 
 // 订单详情页客服中心入口
-window.UIExtensionPointSimpleMgr.extend('OrderDetailBeforeTableSeelWidget', (props) => {
+window.UIExtensionPointSimpleMgr.extend('OrderDetailBeforeTable', (props) => {
   const container = document.createElement('div');
   container.className = 'seel-customer-help-container';
   new SeelCustomerHelp({
     target: container,
     props:{
-      pointName: 'OrderDetailBeforeTableSeelWidget',
+      pointName: 'OrderDetailBeforeTable',
     }
   });
   return container;
