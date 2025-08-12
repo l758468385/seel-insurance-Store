@@ -1,20 +1,26 @@
 <script lang="ts">
-  export let title: string = 'Worry-Free Delivery';
-  export let description: string = 'Your order includes Worry-Free Delivery. If any issues arise, you can file a claim.';
-  export let buttonText: string = 'File a Claim';
+  export let title: string = "Worry-Free Delivery";
+  export let description: string =
+    "Your order includes Worry-Free Delivery. If any issues arise, you can file a claim.";
+  export let buttonText: string = "File a Claim";
 
-  export let pointName: string = ''
-
+  export let pointName: string = "";
 
   function handleFileClaim() {
-    console.log('File a claim')
+    console.log("File a claim");
   }
 </script>
 
 <div class={`seel-customer-help ${pointName}`}>
   <div class="seel-customer-help__content">
     <div class="seel-customer-help__icon">
-      <svg width="20" height="24" viewBox="0 0 20 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg
+        width="20"
+        height="24"
+        viewBox="0 0 20 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
         <g clip-path="url(#clip0_1152_4929)">
           <path
             d="M10.0013 20.3307C5.3988 20.3307 1.66797 16.5999 1.66797 11.9974C1.66797 7.3949 5.3988 3.66406 10.0013 3.66406C14.6038 3.66406 18.3346 7.3949 18.3346 11.9974C18.3346 16.5999 14.6038 20.3307 10.0013 20.3307ZM9.17047 15.3307L15.0621 9.43823L13.8838 8.2599L9.17047 12.9741L6.81297 10.6166L5.63464 11.7949L9.17047 15.3307Z"
@@ -23,7 +29,12 @@
         </g>
         <defs>
           <clipPath id="clip0_1152_4929">
-            <rect width="20" height="20" fill="white" transform="translate(0 2)" />
+            <rect
+              width="20"
+              height="20"
+              fill="white"
+              transform="translate(0 2)"
+            />
           </clipPath>
         </defs>
       </svg>
@@ -41,10 +52,12 @@
   </button>
 </div>
 
-<style>
+<style lang="scss">
+  @import "../styles/variables.scss";
+
   .seel-customer-help {
     padding: 15px;
-    border: 1px solid #d6d7da;
+    border: 1px solid $seel-border-color;
     border-radius: 5px;
     background-color: #fff;
     margin-top: 20px;
@@ -53,59 +66,63 @@
     align-items: center;
     font-family: inherit;
     text-align: left;
-  }
-  .OrderDetailBeforeTable {
-    margin-bottom: 30px;
-  }
-  .seel-customer-help__content {
-    display: flex;
-    flex: 1;
-  }
 
-  .seel-customer-help__icon {
-    margin-right: 8px;
-  }
+    &__content {
+      display: flex;
+      flex: 1;
+    }
 
-  .seel-customer-help__text h3 {
-    font-size: 16px;
-    font-weight: 600;
-    line-height: 24px;
-    margin-bottom: 8px;
-  }
+    &__icon {
+      margin-right: 8px;
+    }
 
-  .seel-customer-help__text p {
-    font-size: 14px;
-    line-height: 150%;
-    color: #666;
-    margin-bottom: 4px;
-  }
+    &__text {
+      h3 {
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 24px;
+        margin-bottom: 8px;
+      }
 
-  .seel-customer-help__powered {
-    font-size: 12px;
-    color: #909399;
-    line-height: 150%;
+      p {
+        font-size: 14px;
+        line-height: 150%;
+        color: #666;
+        margin-bottom: 4px;
+      }
+    }
+
+    &__powered {
+      font-size: 12px;
+      color: $seel-powered-color;
+      line-height: 150%;
+    }
+
+    &__button {
+      background-color: $main-btn-bg;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      margin-left: 12px;
+
+      &:hover {
+        opacity: 0.9;
+      }
+    }
   }
 
   .seel-logo {
-    color: #6366f1;
+    color: $seel-brand-color;
     font-weight: 600;
   }
 
-  .seel-customer-help__button {
-    background-color: var(--checkout-btn-color, var(--main-btn-bg, #333));
-    color: white;
-    border: none;
-    border-radius: 5px;
-    padding: 12px 24px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    margin-left: 12px;
-  }
-
-  .seel-customer-help__button:hover {
-    opacity: 0.9;
+  .OrderDetailBeforeTable {
+    margin-bottom: 30px;
   }
 
   @media screen and (max-width: 767px) {
@@ -123,6 +140,5 @@
     .OrderDetailBeforeTable {
       margin: 15px 15px 20px 15px;
     }
-
   }
 </style>

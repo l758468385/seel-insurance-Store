@@ -1,13 +1,18 @@
 <script lang="ts">
-  import CheckBox from './CheckBox.svelte';
-  import { shouldShowWidget, isAccepted, price, handleChange } from '../store/seel';
+  import CheckBox from "./CheckBox.svelte";
+  import {
+    shouldShowWidget,
+    isAccepted,
+    price,
+    handleChange,
+  } from "../store/seel";
 
   // 所有状态都是全局共享的，多个组件实例会自动同步
   $: showWidget = $shouldShowWidget;
   $: accepted = $isAccepted;
   $: formattedPrice = $price;
 
-  export let pointName: string = ''
+  export let pointName: string = "";
 </script>
 
 {#if showWidget}
@@ -26,7 +31,8 @@
         </span>
       </div>
       <span class="seel-widget__desc">
-        Get a full refund if the order doesn't arrive as described, including loss & damage in transit
+        Get a full refund if the order doesn't arrive as described, including
+        loss & damage in transit
       </span>
       <div class="seel-widget__powered">
         Powered by <span class="seel-widget__brand">seel</span>
@@ -36,62 +42,60 @@
 {/if}
 
 <style lang="scss">
-.seel-widget {
-  display: flex;
-  margin-top: 20px;
-  border: 1px solid #d6d7da;
-  padding: 12px;
-  border-radius: 5px;
+  @import "../styles/variables.scss";
 
-
-  :global(.seel-widget__checkbox) {
-    margin-right: 12px;
-    margin-top: 4px;
-  }
-
-  &__content {
-    flex: 1;
-  }
-
-  &__title {
+  .seel-widget {
     display: flex;
-    align-items: center;
-    color: #333;
-    line-height: 24px;
-    font-size: 16px;
-    margin-bottom: 8px;
+    margin-top: 20px;
+    border: 1px solid $seel-border-color;
+    padding: 12px;
+    border-radius: 5px;
 
-    &-text {
-      font-weight: 600;
+    :global(.seel-widget__checkbox) {
+      margin-right: 12px;
+      margin-top: 4px;
+    }
+
+    &__content {
+      flex: 1;
+    }
+
+    &__title {
+      display: flex;
+      align-items: center;
+      color: $seel-text-color;
+      line-height: 24px;
+      font-size: 16px;
+      margin-bottom: 8px;
+
+      &-text {
+        font-weight: 600;
+      }
+    }
+
+    &__desc {
+      font-size: 14px;
+      color: $seel-desc-color;
+      line-height: 150%;
+      padding-bottom: 4px;
+    }
+
+    &__powered {
+      font-size: 12px;
+      color: $seel-powered-color;
+      line-height: 150%;
+    }
+
+    &__brand {
+      color: $seel-brand-color;
     }
   }
 
-  &__desc {
-    font-size: 14px;
-    color: #333;
-    line-height: 150%;
-    padding-bottom: 4px;
+  .CartPageContentEnd {
+    margin: 20px 10px 0 10px;
   }
 
-  &__powered {
-    font-size: 12px;
-    color: #909399;
-    line-height: 150%;
+  .CartPageContentsBefore {
+    margin: 0 20px 10px 20px;
   }
-
-  &__brand {
-    color: #645aff;
-  }
-}
-
-
-.CartPageContentEnd {
-  margin: 20px 10px 0 10px;
-}
-
-
-.CartPageContentsBefore {
-  margin: 0 20px 10px 20px;
-}
-
 </style>
