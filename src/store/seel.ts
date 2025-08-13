@@ -1,6 +1,11 @@
-import { writable, derived } from 'svelte/store';
-import { create_quotes_api, buildQuoteData, computeSymbolPrice, isEmpty } from '../utils/seel';
-import type { SeelQuoteResponse, SeelInsuranceParams } from '../types';
+import { writable, derived } from "svelte/store";
+import {
+  create_quotes_api,
+  buildQuoteData,
+  computeSymbolPrice,
+  isEmpty,
+} from "../utils/seel";
+import type { SeelQuoteResponse, SeelInsuranceParams } from "../types";
 import type { RawCartType } from "@shop/api-types";
 
 // ===== 全局状态管理 =====
@@ -17,7 +22,10 @@ export const customer = writable<any>({});
 
 // 货币相关状态
 export const showCurrencySelector = writable<boolean>(false);
-export const mainAppPriceType = writable<string>('USD');
+export const mainAppPriceType = writable<string>("USD");
+
+// 加载状态
+export const isLoading = writable<boolean>(false);
 
 // 初始化状态
 let isInitialized = false;
@@ -29,7 +37,11 @@ export const price = derived(
   [responseBody, mainAppPriceType, showCurrencySelector],
   ([$responseBody, $mainAppPriceType, $showCurrencySelector]) => {
     const currentPrice = $responseBody?.price || 0;
-    return computeSymbolPrice(currentPrice, $showCurrencySelector, $mainAppPriceType);
+    return computeSymbolPrice(
+      currentPrice,
+      $showCurrencySelector,
+      $mainAppPriceType
+    );
   }
 );
 
@@ -45,31 +57,39 @@ export const shouldShowWidget = derived(
 export async function createQuotes(cartData: RawCartType): Promise<void> {
   if (!cartData) return;
 
-  const quoteData = buildQuoteData(cartData);
-  const response = await create_quotes_api(quoteData);
+  isLoading.set(true);
 
-  if (response) {
-    responseBody.set(response);
+  try {
+    const quoteData = buildQuoteData(cartData);
+    const response = await create_quotes_api(quoteData);
+    if (response) {
+      responseBody.set(response);
+    }
+  } catch (error) {
+  } finally {
+    isLoading.set(false);
   }
 }
 
 export async function handleChange(accepted: boolean): Promise<void> {
   isAccepted.set(accepted);
 
-  const { get } = await import('svelte/store');
+  const { get } = await import("svelte/store");
   const currentResponseBody = get(responseBody);
 
   if (currentResponseBody) {
     await setSeelShippingInsurance({
       isAccepted: accepted,
       quote_id: currentResponseBody.quote_id,
-      quote: currentResponseBody.price
+      quote: currentResponseBody.price,
     });
   }
 }
 
-async function setSeelShippingInsurance(params: SeelInsuranceParams): Promise<void> {
-  await new Promise(resolve => setTimeout(resolve, 300));
+async function setSeelShippingInsurance(
+  params: SeelInsuranceParams
+): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, 300));
 }
 
 // ===== 事件监听和初始化 =====
@@ -90,10 +110,10 @@ function watchMainAppPriceType(): void {
 function subscribeCartChange(): void {
   if (!window.shopSDK) return;
 
-  window.shopSDK.register(['analytics'], ({ analytics }) => {
+  window.shopSDK.register(["analytics"], ({ analytics }) => {
     analytics.data.cart.onChange((cartData: any) => {
       const { cart } = cartData || {};
-      console.log('cart changed', isEmpty(cart));
+      console.log("cart changed", isEmpty(cart));
       if (isEmpty(cart)) {
         // 这边应该也需要去请求一个接口去取消运费险
         isShowSeelWidget.set(false);
