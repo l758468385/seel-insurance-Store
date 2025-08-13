@@ -21,7 +21,7 @@
 </label>
 
 <style lang="scss">
-  @import "../styles/variables.scss";
+  @use "../styles/variables.scss" as vars;
 
   .seel-checkbox {
     display: inline-block;
@@ -61,8 +61,8 @@
     }
 
     &__input:checked ~ &__checkmark {
-      background-color: $main-btn-bg;
-      border-color: $main-btn-bg;
+      background-color: vars.$main-btn-bg;
+      border-color: vars.$main-btn-bg;
 
       &::after {
         display: block;
@@ -70,7 +70,7 @@
     }
 
     &:hover &__checkmark {
-      border-color: $main-btn-bg;
+      border-color: vars.$main-btn-bg;
     }
   }
 </style>

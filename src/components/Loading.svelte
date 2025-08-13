@@ -39,7 +39,7 @@
 {/if}
 
 <style lang="scss">
-  @import "../styles/variables.scss";
+  @use "../styles/variables.scss" as vars;
 
   .seel-loading {
     display: inline-flex;
@@ -66,7 +66,7 @@
 
     &__text {
       font-size: 14px;
-      color: $seel-text-color;
+      color: vars.$seel-text-color;
       text-align: center;
     }
 

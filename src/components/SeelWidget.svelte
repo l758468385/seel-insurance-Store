@@ -42,12 +42,12 @@
 {/if}
 
 <style lang="scss">
-  @import "../styles/variables.scss";
+  @use "../styles/variables.scss" as vars;
 
   .seel-widget {
     display: flex;
     margin-top: 20px;
-    border: 1px solid $seel-border-color;
+    border: 1px solid vars.$seel-border-color;
     padding: 12px;
     border-radius: 5px;
 
@@ -63,7 +63,7 @@
     &__title {
       display: flex;
       align-items: center;
-      color: $seel-text-color;
+      color: vars.$seel-text-color;
       line-height: 24px;
       font-size: 16px;
       margin-bottom: 8px;
@@ -75,19 +75,19 @@
 
     &__desc {
       font-size: 14px;
-      color: $seel-desc-color;
+      color: vars.$seel-desc-color;
       line-height: 150%;
       padding-bottom: 4px;
     }
 
     &__powered {
       font-size: 12px;
-      color: $seel-powered-color;
+      color: vars.$seel-powered-color;
       line-height: 150%;
     }
 
     &__brand {
-      color: $seel-brand-color;
+      color: vars.$seel-brand-color;
     }
   }
 

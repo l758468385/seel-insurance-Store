@@ -34,7 +34,7 @@
 </div>
 
 <style lang="scss">
-  @import "../styles/variables.scss";
+  @use "../styles/variables.scss" as vars;
 
   .seel-banner {
     display: flex;
@@ -47,7 +47,7 @@
       margin-right: 12px;
     }
     .brand {
-      color: $seel-brand-color;
+      color: vars.$seel-brand-color;
     }
   }
 </style>

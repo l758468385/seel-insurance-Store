@@ -53,11 +53,11 @@
 </div>
 
 <style lang="scss">
-  @import "../styles/variables.scss";
+  @use "../styles/variables.scss" as vars;
 
   .seel-customer-help {
     padding: 15px;
-    border: 1px solid $seel-border-color;
+    border: 1px solid vars.$seel-border-color;
     border-radius: 5px;
     background-color: #fff;
     margin-top: 20px;
@@ -94,12 +94,12 @@
 
     &__powered {
       font-size: 12px;
-      color: $seel-powered-color;
+      color: vars.$seel-powered-color;
       line-height: 150%;
     }
 
     &__button {
-      background-color: $main-btn-bg;
+      background-color: vars.$main-btn-bg;
       color: white;
       border: none;
       border-radius: 5px;
@@ -117,7 +117,7 @@
   }
 
   .seel-logo {
-    color: $seel-brand-color;
+    color: vars.$seel-brand-color;
     font-weight: 600;
   }
 
