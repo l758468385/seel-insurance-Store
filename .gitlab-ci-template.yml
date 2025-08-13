@@ -1,0 +1,191 @@
+#模版使用：
+# 需要流水文件里定义 variables （注意 "ENABLED_STAGING" 决定CI变量中是否要配 "STAGING_" 开头的变量）
+# 需要配置CI变量： 
+#   【文件变量】编译项目时导入的环境变量（代码里用import.meta.env读取）:DEVELOP_ENV/STAGING_ENV/PRODUCTION_ENV
+#   【字符串变量】当前项目的仓库修改令牌（用来CI打版本标签的）:GITLAB_USER/GITLAB_TOKEN
+#   【字符串变量】上传产物到存储（部署时上传到存储）:UPLOAD_REGION/UPLOAD_BUCKET/UPLOAD_ACCESS_KEY_ID/UPLOAD_ACCESS_KEY_SECRET/UPLOAD_TARGET_URL
+#                  UPLOAD_TARGET_URL: 访问资源的URL基础路径，结尾没斜杠，如"https://vmi.eshoptechhub.com"
+#   【字符串变量】发布自定义代码（开发环境）:DEVELOP_CUSTOM_CODE_API/DEVELOP_CUSTOM_CODE_KEY
+#   【字符串变量】发布自定义代码（预发环境）:STAGING_CUSTOM_CODE_API/STAGING_CUSTOM_CODE_KEY
+#   【字符串变量】发布自定义代码（生产环境）:PRODUCTION_CUSTOM_CODE_API/PRODUCTION_CUSTOM_CODE_KEY
+# 需要使用 yarn 作为包管理器（用yarn.lock作为包缓存依赖）
+# 需要 package.json -> "scripts" 里定义 "build:changelog" 脚本，会在打版本时执行，可以用来生成变更日志，修改内容会被提交
+#     如不需要可以："build:changelog": "echo \"\""
+# 有两种流水："feature/"开头的特性分支，只能发布开发环境；"v"开头的tag，可以发布预发和生产环境
+
+variables:
+  # 是否启用预发环境（会多一套预发环境的job，包含了：构建、部署、发布自定代码。同时决定是否配置STAGING_开头的CI变量）
+  ENABLED_STAGING: "true"
+  # 需要上传的本地目录（将整个目录内容上传，斜杆结尾）
+  UPLOAD_LOCAL_DIR: "./dist/"
+  # 产物中的入口js（相对版本产物根目录，无斜杆开头。需要符合url路径语法）
+  UPLOAD_ENTRY_JS: "index.js"
+  # 上传目标目录（相对于桶根目录，开头和结尾需要斜杠，如果是在桶根目录则"/"。需要符合url路径语法，即会用在上传存储的路径拼接，也会用在CDN访问的url拼接）
+  UPLOAD_TARGET_DIR: "/"
+  # 上传前执行的命令
+  UPLOAD_BEFORE_CMD: "echo \"准备上传\""
+  # 自定义代码的模版文件，可用关键字（读取时会被实际内容替换）： ${entryJsUrl} ${jsIntegrity}
+  CUSTOM_CODE_TEMPLATE: "./scripts/custom-code-template.html"
+
+# 使用这个CI模版，提供生成版本的job（release开头的三个），需要配置CI变量 GITLAB_USER、GITLAB_TOKEN
+include:
+  - remote: 'https://git.papamk.com/public-res/ci-template/-/raw/master/package-v1.13.yml'
+
+
+# package.json里版本号升级，并打出对应tag
+release-patch:
+  extends: .release-patch
+release-minor:
+  extends: .release-minor
+release-major:
+  extends: .release-major
+
+# 定义ci流程
+stages:
+  - build
+  - deploy
+  - publish-custom-code
+
+# 注入各环境配置，编译代码
+
+.yarn-install: &yarn-install
+  - start=$(date +%s);yarnOut=$(yarn install --verbose);useTime=$(($(date +%s) - start))
+  - echo "yarn install 耗时：${useTime}秒"
+  - if (( $useTime > 60 )); then echo -e "包安装耗时超过60秒，输出详细日志：\n${yarnOut}"; fi
+
+build-develop:
+  extends: .package-cache
+  stage: build
+  script:
+    - *yarn-install
+    - cp $DEVELOP_ENV .env
+    - yarn build
+  rules:
+    - if: '$CI_COMMIT_BRANCH =~ /^feature\/.*$/'
+
+build-staging:
+  extends: .package-cache
+  stage: build
+  script:
+    - *yarn-install
+    - cp $STAGING_ENV .env
+    - yarn build
+  rules:
+    - if: '$ENABLED_STAGING == "true" && $CI_COMMIT_TAG =~ /^v.*/'
+
+build-production:
+  extends: .package-cache
+  stage: build
+  script:
+    - *yarn-install
+    - cp $PRODUCTION_ENV .env
+    - yarn build
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v.*/'
+
+# 各环境对应的发布任务
+
+.deploy-script: &deploy-script
+  - INTEGRITY_HASH=$(node ./scripts/build-integrity.js --file="${UPLOAD_LOCAL_DIR}${UPLOAD_ENTRY_JS}")
+  - echo "INTEGRITY_HASH:${INTEGRITY_HASH}"
+  # 目前固定oss存储，直接写死拼接规则
+  - TARGET_PATH="oss://${UPLOAD_BUCKET}${UPLOAD_TARGET_DIR}${RePath}"
+  - JS_URL="${UPLOAD_TARGET_URL}${UPLOAD_TARGET_DIR}${RePath}/${UPLOAD_ENTRY_JS}"
+  - echo "将上传目录:$TARGET_PATH  入口js:${JS_URL}"
+  - eval $UPLOAD_BEFORE_CMD
+  # 执行上传
+  - aliyun configure set --profile akProfile --mode AK --region $UPLOAD_REGION --access-key-id $UPLOAD_ACCESS_KEY_ID --access-key-secret $UPLOAD_ACCESS_KEY_SECRET
+  - aliyun oss cp ${UPLOAD_LOCAL_DIR} --update --recursive $TARGET_PATH
+  # 后续要需要可以扩展成双存储实现，再加个变量去识别
+  #- export AWS_ACCESS_KEY_ID=$UPLOAD_ACCESS_KEY_ID
+  #- export AWS_SECRET_ACCESS_KEY=$UPLOAD_ACCESS_KEY_SECRET
+  #- aws s3 cp ${UPLOAD_LOCAL_DIR} $TARGET_PATH --region $UPLOAD_REGION --cache-control max-age=604800 --recursive --acl public-read
+  # 生成自定义代码，输出控制台，并输出到产物目录中，提交后端时直接使用
+  - CustomCodeFile="./tmp/custom-code.txt"
+  - node ./scripts/build-custom-code.js --js-url="${JS_URL}" --js-integrity="${INTEGRITY_HASH}" --custom-code-template="${CUSTOM_CODE_TEMPLATE}" --custom-code-out-file="${CustomCodeFile}"
+
+deploy-develop:
+  stage: deploy
+  dependencies:
+    - build-develop
+  artifacts:
+    expire_in: 1 day
+    paths:
+      # 上传并生成自定义代码，输出到临时文件，后续发布自定义代码时，可以直接使用
+      - tmp
+  script:
+    # 开发环境，使用 "分支名/commit短ID/" 作为目录（同分支每次都是一个新目录，避免缓存问题）
+    - RePath="${CI_COMMIT_BRANCH}/${CI_COMMIT_SHORT_SHA}"
+    - *deploy-script
+  rules:
+    - if: '$CI_COMMIT_BRANCH =~ /^feature\/.*$/'
+      when: manual
+
+deploy-staging:
+  stage: deploy
+  dependencies:
+    - build-staging
+  artifacts:
+    expire_in: 1 day
+    paths:
+      # 上传并生成自定义代码，输出到临时文件，后续发布自定义代码时，可以直接使用
+      - tmp
+  script:
+    # 预发环境，使用 "staging/v版本号" 作为目录
+    - RePath="${staging}/${CI_COMMIT_TAG}"
+    - *deploy-script
+  rules:
+    - if: '$ENABLED_STAGING == "true" && $CI_COMMIT_TAG =~ /^v.*/'
+  when: manual
+
+deploy-production:
+  stage: deploy
+  dependencies:
+    - build-production
+  artifacts:
+    expire_in: 1 day
+    paths:
+      # 上传并生成自定义代码，输出到临时文件，后续发布自定义代码时，可以直接使用
+      - tmp
+  script:
+    # 生产环境，使用 "v版本号" 作为目录
+    - RePath="${CI_COMMIT_TAG}"
+    - *deploy-script
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v.*/'
+  when: manual
+
+# 发布自定义代码（前端生成HTML代码后发给后端接口，由后端在升级时更新所有店铺）
+
+publish-custom-code-develop:
+  stage: publish-custom-code
+  dependencies:
+    - deploy-develop
+  script:
+    - CustomCodeFile="./tmp/custom-code.txt"
+    - node ./scripts/publish-custom-code.js --custom-code-file="${CustomCodeFile}" --custom-code-api="${DEVELOP_CUSTOM_CODE_API}" --secret-key="${DEVELOP_CUSTOM_CODE_KEY}"
+  rules:
+    - if: '$CI_COMMIT_BRANCH =~ /^feature\/.*$/'
+  when: manual
+
+publish-custom-code-staging:
+  stage: publish-custom-code
+  dependencies:
+    - deploy-staging
+  script:
+    - CustomCodeFile="./tmp/custom-code.txt"
+    - node ./scripts/publish-custom-code.js --custom-code-file="${CustomCodeFile}" --custom-code-api="${STAGING_CUSTOM_CODE_API}" --secret-key="${STAGING_CUSTOM_CODE_KEY}"
+  rules:
+    - if: '$ENABLED_STAGING == "true" && $CI_COMMIT_TAG =~ /^v.*/'
+  when: manual
+
+publish-custom-code-production:
+  stage: publish-custom-code
+  dependencies:
+    - deploy-production
+  script:
+    - CustomCodeFile="./tmp/custom-code.txt"
+    - node ./scripts/publish-custom-code.js --custom-code-file="${CustomCodeFile}" --custom-code-api="${PRODUCTION_CUSTOM_CODE_API}" --secret-key="${PRODUCTION_CUSTOM_CODE_KEY}"
+  only:
+    - tags
+  when: manual
