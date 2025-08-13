@@ -1,6 +1,7 @@
 import SeelWidget from "./components/SeelWidget.svelte";
 import SeelBanner from "./components/SeelBanner.svelte";
 import SeelCustomerHelp from "./components/SeelCustomerHelp.svelte";
+import SeelGlobalLoading from "./components/SeelGlobalLoading.svelte";
 
 import { initializeSeelWidget } from "./store/seel";
 
@@ -124,3 +125,14 @@ window.UIExtensionPointSimpleMgr.extend("OrderDetailBeforeTable", (props) => {
   });
   return container;
 });
+
+// 全局 Loading 组件 - 只渲染一次
+window.addEventListener("DOMContentLoaded", () => {
+  const container = document.createElement("div");
+  container.className = "seel-global-loading-container";
+  new SeelGlobalLoading({
+    target: container,
+  });
+  document.body.appendChild(container);
+});
+

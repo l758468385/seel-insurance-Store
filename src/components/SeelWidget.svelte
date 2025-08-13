@@ -1,13 +1,12 @@
 <script lang="ts">
   import CheckBox from "./CheckBox.svelte";
-  import Loading from "./Loading.svelte";
+
 
   import {
     shouldShowWidget,
     isAccepted,
     price,
     handleChange,
-    isLoading,
   } from "../store/seel";
 
   export let pointName: string = "";
@@ -39,7 +38,7 @@
   </div>
 {/if}
 
-<Loading visible={$isLoading} overlay={true} />
+
 
 <style lang="scss">
   @use "../styles/variables.scss" as vars;
