@@ -10,18 +10,13 @@
     isLoading,
   } from "../store/seel";
 
-  // 所有状态都是全局共享的，多个组件实例会自动同步
-  $: showWidget = $shouldShowWidget;
-  $: accepted = $isAccepted;
-  $: formattedPrice = $price;
-
   export let pointName: string = "";
 </script>
 
-{#if showWidget}
+{#if $shouldShowWidget}
   <div class={`seel-widget ${pointName}`}>
     <CheckBox
-      checked={accepted}
+      checked={$isAccepted}
       onChange={handleChange}
       class="seel-widget__checkbox"
     />
@@ -30,7 +25,7 @@
       <div class="seel-widget__title">
         <span class="seel-widget__title-text">Worry-Free Delivery</span>&nbsp;
         <span class="seel-widget__title-price">
-          for {formattedPrice}
+          for {$price}
         </span>
       </div>
       <span class="seel-widget__desc">
