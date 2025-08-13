@@ -21,6 +21,17 @@ export interface SeelInsuranceParams {
   quote: number;
 }
 
+// Loading 组件相关类型定义
+export type LoadingSize = 'small' | 'medium' | 'large';
+
+export interface LoadingProps {
+  size?: LoadingSize;
+  color?: string;
+  text?: string;
+  overlay?: boolean;
+  visible?: boolean;
+}
+
 export interface QuoteRequestPayload {
   // 根据实际API需求定义
   [key: string]: any;
